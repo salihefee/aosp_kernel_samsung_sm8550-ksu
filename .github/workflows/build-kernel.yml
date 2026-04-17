@@ -1,0 +1,84 @@
+name: Build
+run-name: Build kernel & integrate `dev` KernelSU Next via Kprobes
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone source
+        uses: actions/checkout@v6
+        with:
+          ref: lineage-23.2 # Use the relevant branch
+          fetch-depth: '1'
+
+      - name: Set up the toolchain
+        run: |
+          sudo apt update
+          sudo apt install -y --no-install-recommends \
+            bc bison build-essential curl flex \
+            g++-multilib gcc-multilib git gnupg \
+            lib32readline-dev lib32z1-dev \
+            libelf-dev liblz4-tool libssl-dev \
+            lzop zlib1g-dev pahole dwarves cpio zip \
+            python3 python-is-python3 tar perl lz4 jq
+
+          # The AOSP Clang version currently in use is r574158
+          curl -sSfL --retry 3 --connect-timeout 10 \
+            -o clang.tar.gz \
+            "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/mirror-goog-main-llvm-toolchain-source/clang-r547379.tar.gz" || \
+            { echo "ERROR: Failed to download AOSP Clang! Aborting."; exit 1; }
+          mkdir clang-toolchain
+          tar -xf clang.tar.gz -C clang-toolchain
+          rm clang.tar.gz
+
+      - name: Integrate KernelSU Next
+        run: |
+          # Integrate the KernelSU Next development branch into the source
+          (curl -sSfL --retry 3 --connect-timeout 5 \
+            "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/stable/kernel/setup.sh" || \
+            { echo "ERROR: Failed to retrieve the KernelSU Next setup script! Aborting." >&2; exit 1; }) | \
+            bash -s dev
+
+          # Filename will include the current version number instead of the tag
+          # This simplifies tracking for the development branch builds, as tags only update on new releases
+
+          # Calculate the version of KernelSU Next by counting the commits
+          cd KernelSU-Next
+          COMMIT_VALUE=$(git rev-list --count HEAD)
+          echo "KSU_VERSION=$((30000 + ${COMMIT_VALUE:-0}))" >> $GITHUB_ENV
+
+      - name: Set up swap space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 16
+
+      - name: Compile the kernel
+        run: |
+          # Add AOSP Clang to local PATH
+          export PATH="$GITHUB_WORKSPACE/clang-toolchain/bin:$PATH"
+
+          # Determine the current kernel version
+          echo "KERNEL_VERSION=$(make kernelversion | awk '/^[0-9]/ {print $1}')" >> $GITHUB_ENV
+
+          # Get the current date
+          echo "DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
+
+          # Generate configuration
+          make -j$(nproc --all) O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 dm1q_defconfig || exit 1
+
+          # Run make
+          make -j$(nproc --all) O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 || exit 1
+
+      - name: Package image with AnyKernel3  # Avoid zipping, as `upload-artifact` handles compression automatically
+        run: |
+          cp .github/goodies/AnyKernel3.zip .
+          unzip AnyKernel3.zip -d AnyKernel3/
+          cp out/arch/arm64/boot/Image.gz AnyKernel3/
+
+      - name: Upload the flashable kernel
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.KERNEL_VERSION }}_ksun-dev-${{ env.KSU_VERSION }}-kprobes_${{ env.DATE }}
+          path: AnyKernel3/
