@@ -24,10 +24,10 @@ jobs:
             lzop zlib1g-dev pahole dwarves cpio zip \
             python3 python-is-python3 tar perl lz4 jq
 
-          # The AOSP Clang version currently in use is r574158
+          # The AOSP Clang version currently in use is r584948
           curl -sSfL --retry 3 --connect-timeout 10 \
             -o clang.tar.gz \
-            "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/mirror-goog-main-llvm-toolchain-source/clang-r547379.tar.gz" || \
+            "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/mirror-goog-main-llvm-toolchain-source/clang-r584948.tar.gz" || \
             { echo "ERROR: Failed to download AOSP Clang! Aborting."; exit 1; }
           mkdir clang-toolchain
           tar -xf clang.tar.gz -C clang-toolchain
