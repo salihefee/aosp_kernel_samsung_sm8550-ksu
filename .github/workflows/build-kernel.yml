@@ -88,10 +88,10 @@ jobs:
           export PATH="$GITHUB_WORKSPACE/clang-toolchain/bin:$PATH"
 
           # Generate configuration
-          make -j"$(nproc --all)" O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 dm1q_defconfig
+          make -j"$(nproc --all)" O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 LOCALVERSION="" dm1q_defconfig
 
           # Run make
-          make -j"$(nproc --all)" O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 KCFLAGS="-Wno-error"
+          make -j"$(nproc --all)" O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 LOCALVERSION="" KCFLAGS="-Wno-error"
 
       - name: Package kernel
         id: package
@@ -187,10 +187,10 @@ jobs:
           export PATH="$GITHUB_WORKSPACE/clang-toolchain/bin:$PATH"
 
           # Generate configuration
-          make -j"$(nproc --all)" O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 dm1q_defconfig
+          make -j"$(nproc --all)" O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 LOCALVERSION="" dm1q_defconfig
 
           # Run make
-          make -j"$(nproc --all)" O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 KCFLAGS="-Wno-error"
+          make -j"$(nproc --all)" O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 LOCALVERSION="" KCFLAGS="-Wno-error"
 
       - name: Package kernel
         id: package
@@ -263,10 +263,10 @@ jobs:
           export PATH="$GITHUB_WORKSPACE/clang-toolchain/bin:$PATH"
 
           # Generate configuration
-          make -j"$(nproc --all)" O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 dm1q_defconfig
+          make -j"$(nproc --all)" O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 LOCALVERSION="" dm1q_defconfig
 
           # Run make
-          make -j"$(nproc --all)" O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 KCFLAGS="-Wno-error"
+          make -j"$(nproc --all)" O=out ARCH=arm64 CC=clang LD=ld.lld LLVM=1 LLVM_IAS=1 LOCALVERSION="" KCFLAGS="-Wno-error"
 
       - name: Package kernel
         id: package
